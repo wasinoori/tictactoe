@@ -1,0 +1,441 @@
+<html><head><base href="https://websim.ai/persian-tic-tac-toe/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دوز پارسی | Persian Tic-Tac-Toe</title>
+    <style>
+      @font-face {
+        font-family: 'Vazir';
+        src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir-Regular.woff2') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+      }
+    
+      :root {
+        --primary-color: #FF6B6B;
+        --secondary-color: #4ECDC4;
+        --background-color: #F7FFF7;
+        --text-color: #2C3E50;
+        --border-color: #E0E0E0;
+      }
+    
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+    
+      body {
+        font-family: 'Vazir', Arial, sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        direction: rtl;
+      }
+    
+      .container {
+        background-color: #FFFFFF;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+      }
+    
+      header {
+        margin-bottom: 2rem;
+      }
+    
+      h1 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+    
+      .settings-btn {
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+    
+      .settings-btn:hover {
+        background-color: #45b7aa;
+      }
+    
+      .game-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+    
+      .player-info {
+        text-align: center;
+      }
+    
+      .active-player {
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+    
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 2rem;
+        position: relative;
+      }
+    
+      .cell {
+        width: 100px;
+        height: 100px;
+        background-color: var(--secondary-color);
+        border: none;
+        font-size: 48px;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        border-radius: 10px;
+      }
+    
+      .cell:hover {
+        background-color: #45b7aa;
+        transform: scale(1.05);
+      }
+    
+      .cell:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    
+      .winning-line {
+        position: absolute;
+        background-color: var(--primary-color);
+        transition: all 0.3s ease;
+      }
+    
+      #status {
+        font-size: 24px;
+        margin-bottom: 1rem;
+        min-height: 36px;
+      }
+    
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    
+      .btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-size: 1rem;
+      }
+    
+      .btn:hover {
+        background-color: #ff5252;
+      }
+    
+      #ai-toggle {
+        display: flex;
+        align-items: center;
+      }
+    
+      #ai-toggle input {
+        margin-left: 0.5rem;
+      }
+    
+      footer {
+        margin-top: 2rem;
+        font-size: 0.9rem;
+        color: #777;
+      }
+    
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+    
+      .pulse {
+        animation: pulse 0.5s ease-in-out;
+      }
+    
+      @media (max-width: 500px) {
+        .cell {
+          width: 80px;
+          height: 80px;
+          font-size: 36px;
+        }
+      }
+    </style>
+    </head>
+    <body>
+      <div class="container">
+        <header>
+          <h1>مصلح تاک تو</h1>
+          <button class="settings-btn">تنظیمات</button>
+        </header>
+    
+        <div class="game-info">
+          <div class="player-info" id="player-x">
+            <h3>بازیکن ا (X)</h3>
+            <p>امتیاز: <span id="score-x">0</span></p>
+          </div>
+          <div class="player-info" id="player-o">
+            <h3>بازیکن ب (O)</h3>
+            <p>امتیاز: <span id="score-o">0</span></p>
+          </div>
+        </div>
+    
+        <div class="board" id="board">
+          <button class="cell" data-index="0"></button>
+          <button class="cell" data-index="1"></button>
+          <button class="cell" data-index="2"></button>
+          <button class="cell" data-index="3"></button>
+          <button class="cell" data-index="4"></button>
+          <button class="cell" data-index="5"></button>
+          <button class="cell" data-index="6"></button>
+          <button class="cell" data-index="7"></button>
+          <button class="cell" data-index="8"></button>
+          <div class="winning-line" id="winning-line"></div>
+        </div>
+    
+        <div id="status">نوبت بازیکن ا (X)</div>
+    
+        <div class="controls">
+          <button id="reset" class="btn">شروع مجدد</button>
+          <div id="ai-toggle">
+            <label>
+              <input type="checkbox" id="ai-enabled"> بازی با کامپیوتر
+            </label>
+          </div>
+          <button id="history" class="btn">تاریخچه</button>
+        </div>
+      </div>
+    
+      <footer>
+        <p id="current-time"></p>
+      </footer>
+    
+      <script>
+        const board = document.getElementById('board');
+        const cells = document.querySelectorAll('.cell');
+        const status = document.getElementById('status');
+        const resetButton = document.getElementById('reset');
+        const aiToggle = document.getElementById('ai-enabled');
+        const historyButton = document.getElementById('history');
+        const scoreX = document.getElementById('score-x');
+        const scoreO = document.getElementById('score-o');
+        const currentTimeElement = document.getElementById('current-time');
+        const winningLine = document.getElementById('winning-line');
+    
+        let currentPlayer = 'X';
+        let gameState = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let scores = { X: 0, O: 0 };
+        let startingPlayer = 'X';
+    
+        const winningConditions = [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8],
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8],
+          [0, 4, 8],
+          [2, 4, 6]
+        ];
+    
+        function handleCellClick(e) {
+          const clickedCell = e.target;
+          const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+    
+          if (gameState[clickedCellIndex] !== '' || !gameActive) return;
+    
+          gameState[clickedCellIndex] = currentPlayer;
+          clickedCell.textContent = currentPlayer === 'X' ? 'ا' : 'ب';
+          clickedCell.classList.add('fade-in');
+          playSound('move');
+          checkResult();
+    
+          if (gameActive && aiToggle.checked && currentPlayer === 'O') {
+            setTimeout(aiMove, 500);
+          }
+        }
+    
+        function checkResult() {
+          let roundWon = false;
+          let winningCondition;
+    
+          for (let i = 0; i < winningConditions.length; i++) {
+            const condition = winningConditions[i];
+            const a = gameState[condition[0]];
+            const b = gameState[condition[1]];
+            const c = gameState[condition[2]];
+    
+            if (a === '' || b === '' || c === '') continue;
+            if (a === b && b === c) {
+              roundWon = true;
+              winningCondition = condition;
+              break;
+            }
+          }
+    
+          if (roundWon) {
+            status.textContent = `بازیکن ${currentPlayer === 'X' ? 'ا' : 'ب'} برنده شد!`;
+            status.classList.add('pulse');
+            gameActive = false;
+            updateScore(currentPlayer);
+            drawWinningLine(winningCondition);
+            playSound('win');
+            return;
+          }
+    
+          if (!gameState.includes('')) {
+            status.textContent = 'بازی مساوی شد!';
+            status.classList.add('pulse');
+            gameActive = false;
+            playSound('draw');
+            return;
+          }
+    
+          currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+          updateActivePlayer();
+          status.textContent = `نوبت بازیکن ${currentPlayer === 'X' ? 'ا' : 'ب'} (${currentPlayer})`;
+        }
+    
+        function resetGame() {
+          currentPlayer = startingPlayer;
+          startingPlayer = startingPlayer === 'X' ? 'O' : 'X';
+          gameState = ['', '', '', '', '', '', '', '', ''];
+          gameActive = true;
+          status.textContent = `نوبت بازیکن ${currentPlayer === 'X' ? 'ا' : 'ب'} (${currentPlayer})`;
+          status.classList.remove('pulse');
+          cells.forEach(cell => {
+            cell.textContent = '';
+            cell.disabled = false;
+            cell.classList.remove('fade-in');
+          });
+          winningLine.style.display = 'none';
+          updateActivePlayer();
+          playSound('reset');
+    
+          if (aiToggle.checked && currentPlayer === 'O') {
+            setTimeout(aiMove, 500);
+          }
+        }
+    
+        function aiMove() {
+          const emptyCells = gameState.reduce((acc, cell, index) => {
+            if (cell === '') acc.push(index);
+            return acc;
+          }, []);
+    
+          if (emptyCells.length > 0) {
+            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            gameState[randomIndex] = currentPlayer;
+            cells[randomIndex].textContent = 'ب';
+            cells[randomIndex].classList.add('fade-in');
+            cells[randomIndex].disabled = true;
+            playSound('move');
+            checkResult();
+          }
+        }
+    
+        function updateScore(player) {
+          scores[player]++;
+          scoreX.textContent = scores.X;
+          scoreO.textContent = scores.O;
+        }
+    
+        function updateActivePlayer() {
+          document.getElementById('player-x').classList.toggle('active-player', currentPlayer === 'X');
+          document.getElementById('player-o').classList.toggle('active-player', currentPlayer === 'O');
+        }
+    
+        function drawWinningLine(condition) {
+          const lineWidth = 5;
+          const cellSize = cells[0].offsetWidth;
+          const boardRect = board.getBoundingClientRect();
+    
+          let x1, y1, x2, y2;
+    
+          if (condition[0] % 3 === condition[2] % 3) {
+            // Vertical line
+            const col = condition[0] % 3;
+            x1 = x2 = (col + 0.5) * cellSize;
+            y1 = 0;
+            y2 = 3 * cellSize;
+            winningLine.style.width = `${lineWidth}px`;
+            winningLine.style.height = `${y2}px`;
+          } else if (Math.floor(condition[0] / 3) === Math.floor(condition[2] / 3)) {
+            // Horizontal line
+            const row = Math.floor(condition[0] / 3);
+            x1 = 0;
+            x2 = 3 * cellSize;
+            y1 = y2 = (row + 0.5) * cellSize;
+            winningLine.style.width = `${x2}px`;
+            winningLine.style.height = `${lineWidth}px`;
+          } else {
+            // Diagonal line
+            x1 = y1 = 0;
+            x2 = y2 = 3 * cellSize;
+            if (condition[0] !== 0) {
+              [x1, y1, x2, y2] = [x2, y2, x1, y1];
+            }
+            winningLine.style.width = `${lineWidth}px`;
+            winningLine.style.height = `${Math.sqrt(2) * 3 * cellSize}px`;
+            winningLine.style.transformOrigin = '0 0';
+            winningLine.style.transform = `rotate(${condition[0] === 0 ? 45 : -45}deg)`;
+          }
+    
+          winningLine.style.left = `${x1}px`;
+          winningLine.style.top = `${y1}px`;
+          winningLine.style.display = 'block';
+        }
+    
+        function playSound(soundType) {
+          // Implement sound playing logic here
+          console.log(`Playing sound: ${soundType}`);
+        }
+    
+        function updateCurrentTime() {
+          const now = new Date();
+          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+          currentTimeElement.textContent = now.toLocaleDateString('fa-IR', options);
+        }
+    
+        board.addEventListener('click', handleCellClick);
+        resetButton.addEventListener('click', resetGame);
+        aiToggle.addEventListener('change', resetGame);
+        historyButton.addEventListener('click', () => {
+          alert('تاریخچه بازی‌ها در نسخه بعدی اضافه خواهد شد.');
+        });
+    
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 60000);
+        updateActivePlayer();
+      </script>
+    </body>
+    </html>
