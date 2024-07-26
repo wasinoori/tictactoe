@@ -1,7 +1,7 @@
 <html><head><base href="https://websim.ai/persian-tic-tac-toe/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دوز پارسی | Persian Tic-Tac-Toe</title>
+    <title>Muslih-Tac-Toe</title>
     <style>
       @font-face {
         font-family: 'Vazir';
@@ -89,7 +89,6 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
         margin-bottom: 2rem;
-        position: relative;
       }
     
       .cell {
@@ -114,10 +113,9 @@
         opacity: 0.7;
       }
     
-      .winning-line {
-        position: absolute;
-        background-color: var(--primary-color);
-        transition: all 0.3s ease;
+      .cell.winning {
+        color: var(--primary-color);
+        font-weight: bold;
       }
     
       #status {
@@ -181,6 +179,19 @@
         animation: pulse 0.5s ease-in-out;
       }
     
+      #player-names {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+    
+      #player-names input {
+        width: 45%;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+      }
+    
       @media (max-width: 500px) {
         .cell {
           width: 80px;
@@ -193,9 +204,14 @@
     <body>
       <div class="container">
         <header>
-          <h1>مصلح تاک تو</h1>
+          <h1>دوز پارسی</h1>
           <button class="settings-btn">تنظیمات</button>
         </header>
+    
+        <div id="player-names">
+          <input type="text" id="player-x-name" placeholder="نام بازیکن ا">
+          <input type="text" id="player-o-name" placeholder="نام بازیکن ب">
+        </div>
     
         <div class="game-info">
           <div class="player-info" id="player-x">
@@ -218,7 +234,6 @@
           <button class="cell" data-index="6"></button>
           <button class="cell" data-index="7"></button>
           <button class="cell" data-index="8"></button>
-          <div class="winning-line" id="winning-line"></div>
         </div>
     
         <div id="status">نوبت بازیکن ا (X)</div>
@@ -248,7 +263,8 @@
         const scoreX = document.getElementById('score-x');
         const scoreO = document.getElementById('score-o');
         const currentTimeElement = document.getElementById('current-time');
-        const winningLine = document.getElementById('winning-line');
+        const playerXName = document.getElementById('player-x-name');
+        const playerOName = document.getElementById('player-o-name');
     
         let currentPlayer = 'X';
         let gameState = ['', '', '', '', '', '', '', '', ''];
@@ -303,11 +319,12 @@
           }
     
           if (roundWon) {
-            status.textContent = `بازیکن ${currentPlayer === 'X' ? 'ا' : 'ب'} برنده شد!`;
+            const winnerName = currentPlayer === 'X' ? playerXName.value || 'بازیکن ا' : playerOName.value || 'بازیکن ب';
+            status.textContent = `${winnerName} برنده شد!`;
             status.classList.add('pulse');
             gameActive = false;
             updateScore(currentPlayer);
-            drawWinningLine(winningCondition);
+            highlightWinningCells(winningCondition);
             playSound('win');
             return;
           }
@@ -322,7 +339,8 @@
     
           currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
           updateActivePlayer();
-          status.textContent = `نوبت بازیکن ${currentPlayer === 'X' ? 'ا' : 'ب'} (${currentPlayer})`;
+          const currentPlayerName = currentPlayer === 'X' ? playerXName.value || 'بازیکن ا' : playerOName.value || 'بازیکن ب';
+          status.textContent = `نوبت ${currentPlayerName} (${currentPlayer})`;
         }
     
         function resetGame() {
@@ -330,14 +348,14 @@
           startingPlayer = startingPlayer === 'X' ? 'O' : 'X';
           gameState = ['', '', '', '', '', '', '', '', ''];
           gameActive = true;
-          status.textContent = `نوبت بازیکن ${currentPlayer === 'X' ? 'ا' : 'ب'} (${currentPlayer})`;
+          const currentPlayerName = currentPlayer === 'X' ? playerXName.value || 'بازیکن ا' : playerOName.value || 'بازیکن ب';
+          status.textContent = `نوبت ${currentPlayerName} (${currentPlayer})`;
           status.classList.remove('pulse');
           cells.forEach(cell => {
             cell.textContent = '';
             cell.disabled = false;
-            cell.classList.remove('fade-in');
+            cell.classList.remove('fade-in', 'winning');
           });
-          winningLine.style.display = 'none';
           updateActivePlayer();
           playSound('reset');
     
@@ -374,45 +392,10 @@
           document.getElementById('player-o').classList.toggle('active-player', currentPlayer === 'O');
         }
     
-        function drawWinningLine(condition) {
-          const lineWidth = 5;
-          const cellSize = cells[0].offsetWidth;
-          const boardRect = board.getBoundingClientRect();
-    
-          let x1, y1, x2, y2;
-    
-          if (condition[0] % 3 === condition[2] % 3) {
-            // Vertical line
-            const col = condition[0] % 3;
-            x1 = x2 = (col + 0.5) * cellSize;
-            y1 = 0;
-            y2 = 3 * cellSize;
-            winningLine.style.width = `${lineWidth}px`;
-            winningLine.style.height = `${y2}px`;
-          } else if (Math.floor(condition[0] / 3) === Math.floor(condition[2] / 3)) {
-            // Horizontal line
-            const row = Math.floor(condition[0] / 3);
-            x1 = 0;
-            x2 = 3 * cellSize;
-            y1 = y2 = (row + 0.5) * cellSize;
-            winningLine.style.width = `${x2}px`;
-            winningLine.style.height = `${lineWidth}px`;
-          } else {
-            // Diagonal line
-            x1 = y1 = 0;
-            x2 = y2 = 3 * cellSize;
-            if (condition[0] !== 0) {
-              [x1, y1, x2, y2] = [x2, y2, x1, y1];
-            }
-            winningLine.style.width = `${lineWidth}px`;
-            winningLine.style.height = `${Math.sqrt(2) * 3 * cellSize}px`;
-            winningLine.style.transformOrigin = '0 0';
-            winningLine.style.transform = `rotate(${condition[0] === 0 ? 45 : -45}deg)`;
-          }
-    
-          winningLine.style.left = `${x1}px`;
-          winningLine.style.top = `${y1}px`;
-          winningLine.style.display = 'block';
+        function highlightWinningCells(condition) {
+          condition.forEach(index => {
+            cells[index].classList.add('winning');
+          });
         }
     
         function playSound(soundType) {
